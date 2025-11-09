@@ -2,7 +2,7 @@ from flask import Flask, render_template
 import math
 from datetime import datetime
 
-app = Flask(__name__)
+app = Flask(__name__, template_folder="templates/eggmonitor")
 
 def build_dashboard_data():
     # --- Header ---
