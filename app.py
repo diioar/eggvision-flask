@@ -556,7 +556,23 @@ def dashboard():
 @app.route('/')
 def comprof_beranda():
     """Homepage - accessible by everyone"""
-    return render_template('comprof/beranda.html')
+    # Get published news from database for the homepage
+    conn = get_db_connection()
+    news_list = []
+    
+    if conn:
+        try:
+            cur = conn.cursor(dictionary=True)
+            cur.execute("SELECT * FROM news WHERE is_published = TRUE ORDER BY published_at DESC LIMIT 10")
+            news_list = cur.fetchall()
+            cur.close()
+        except mysql.connector.Error as e:
+            print(f"Error fetching news: {e}")
+        finally:
+            if conn:
+                conn.close()
+    
+    return render_template('comprof/beranda.html', news_list=news_list)
 
 @app.route('/berita')
 def comprof_berita():
