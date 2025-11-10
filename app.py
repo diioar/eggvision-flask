@@ -1,8 +1,62 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, request, redirect, url_for
 import math
+from werkzeug.utils import secure_filename
+import os
+import numpy as np
+from tensorflow.keras.models import load_model
+from tensorflow.keras.preprocessing.image import load_img, img_to_array
+
 from datetime import datetime
 
+
+MODEL_PATH = "static/cangkang-cnn.keras"  # Pastikan file model diletakkan di sini
+model = load_model(MODEL_PATH)
+
+# Kelas prediksi model (sesuaikan dengan model Anda)
+CLASS_NAMES = ["Brown","DarkBrown","LightBrown"]
+
+UPLOAD_FOLDER = "static/uploads"
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+
+
 app = Flask(__name__)
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
+
+@app.route("/upload", methods=["POST"])
+def upload():
+    if "file" not in request.files:
+        return redirect(url_for("index"))
+
+    file = request.files["file"]
+    if file.filename == "":
+        return redirect(url_for("index"))
+
+    filename = secure_filename(file.filename)
+    file_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
+    file.save(file_path)
+
+    # --- Image preprocessing (sesuaikan dengan input model Anda) ---
+    img = load_img(file_path, target_size=(224, 224))  # ubah size sesuai model
+    img_array = img_to_array(img)
+    img_array = np.expand_dims(img_array, axis=0) / 255.0
+
+    # Predict
+    pred = model.predict(img_array)
+    class_idx = np.argmax(pred)
+    prediction_label = CLASS_NAMES[class_idx]
+    confidence = float(np.max(pred) * 100)
+
+    return render_template(
+        "index.html",
+        **build_dashboard_data(),
+        uploaded_image=url_for("static", filename=f"uploads/{filename}"),
+        prediction=prediction_label,
+        confidence=f"{confidence:.2f}%"
+    )
+
+
 
 def build_dashboard_data():
     # --- Header ---
