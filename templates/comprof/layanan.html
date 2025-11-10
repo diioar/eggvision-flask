@@ -1,0 +1,219 @@
+{% extends "comprof/base.html" %}
+
+{% block title %}Layanan - EggVision{% endblock %}
+
+{% block head %}
+<style>
+    .service-hero {
+        background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
+    }
+    
+    .login-section {
+        background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section relative flex items-center justify-center text-center text-pure-white overflow-hidden service-hero">
+    <div class="relative z-10 p-6 max-w-6xl mx-auto">
+        <h1 class="font-title text-6xl md:text-8xl font-bold mb-6">
+            Layanan Kami
+        </h1>
+        <p class="font-sans text-xl md:text-2xl max-w-2xl mx-auto mb-8 text-gray-300">
+            Solusi lengkap untuk transformasi digital industri peternakan telur Indonesia.
+        </p>
+    </div>
+</section>
+
+<!-- EggMart Section -->
+<section id="eggmart" class="py-24 bg-primary-black text-pure-white">
+    <div class="container mx-auto px-6 lg:px-8 max-w-7xl">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+            <div>
+                <h2 class="font-title text-5xl font-bold mb-6">
+                    EggMart
+                </h2>
+                <p class="font-sans text-lg text-gray-300 mb-8">
+                    Platform marketplace eksklusif yang menghubungkan peternak langsung dengan pembeli. 
+                    Setiap telur yang dijual telah melalui proses grading ketat dengan teknologi AI EggVision.
+                </p>
+                
+                <div class="space-y-4 mb-8">
+                    <div class="flex items-start gap-4">
+                        <div class="w-8 h-8 bg-premium-gold rounded-full flex items-center justify-center flex-shrink-0">
+                            <span class="text-primary-black font-bold text-sm">✓</span>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-pure-white">Kualitas Terjamin</h4>
+                            <p class="text-gray-400 text-sm">Setiap telur melalui proses grading AI dengan standar mutu tertinggi</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-start gap-4">
+                        <div class="w-8 h-8 bg-premium-gold rounded-full flex items-center justify-center flex-shrink-0">
+                            <span class="text-primary-black font-bold text-sm">✓</span>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-pure-white">Harga Transparan</h4>
+                            <p class="text-gray-400 text-sm">Sistem harga yang fair untuk peternak dan pembeli</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-start gap-4">
+                        <div class="w-8 h-8 bg-premium-gold rounded-full flex items-center justify-center flex-shrink-0">
+                            <span class="text-primary-black font-bold text-sm">✓</span>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-pure-white">Logistik Terintegrasi</h4>
+                            <p class="text-gray-400 text-sm">Jaringan distribusi yang efisien ke seluruh Indonesia</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <a href="#login" 
+                   class="font-sans inline-block bg-premium-gold text-primary-black font-bold py-3 px-8 rounded-full text-lg hover:bg-yellow-300 transition duration-300">
+                    Akses EggMart
+                </a>
+            </div>
+            
+            <div class="relative">
+                <div class="w-full h-96 bg-gradient-to-br from-blue-900 to-blue-600 rounded-2xl flex items-center justify-center">
+                    <img src="{{ url_for('static', filename='css/img/icons/eggmarti.png') }}" alt="EggMart" class="h-32 w-32 object-contain" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                    <span class="text-8xl" style="display: none;">🛒</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- EggMonitor Section -->
+<section id="eggmonitor" class="py-24 bg-dark-gray text-pure-white">
+    <div class="container mx-auto px-6 lg:px-8 max-w-7xl">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+            <div class="lg:order-2">
+                <h2 class="font-title text-5xl font-bold mb-6">
+                    EggMonitor
+                </h2>
+                <p class="font-sans text-lg text-gray-300 mb-8">
+                    Dashboard canggih untuk memantau dan mengoptimalkan operasional peternakan Anda. 
+                    Pantau produktivitas, kualitas produksi, dan kesehatan bisnis dari satu platform terpusat.
+                </p>
+                
+                <div class="space-y-4 mb-8">
+                    <div class="flex items-start gap-4">
+                        <div class="w-8 h-8 bg-premium-gold rounded-full flex items-center justify-center flex-shrink-0">
+                            <span class="text-primary-black font-bold text-sm">✓</span>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-pure-white">Monitoring Real-time</h4>
+                            <p class="text-gray-400 text-sm">Pantau performa mesin dan produksi secara live 24/7</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-start gap-4">
+                        <div class="w-8 h-8 bg-premium-gold rounded-full flex items-center justify-center flex-shrink-0">
+                            <span class="text-primary-black font-bold text-sm">✓</span>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-pure-white">Analitik Mendalam</h4>
+                            <p class="text-gray-400 text-sm">Laporan detail dan insight untuk pengambilan keputusan</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-start gap-4">
+                        <div class="w-8 h-8 bg-premium-gold rounded-full flex items-center justify-center flex-shrink-0">
+                            <span class="text-primary-black font-bold text-sm">✓</span>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-pure-white">Notifikasi Cerdas</h4>
+                            <p class="text-gray-400 text-sm">Alert otomatis untuk maintenance dan optimasi</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <a href="#login" 
+                   class="font-sans inline-block bg-premium-gold text-primary-black font-bold py-3 px-8 rounded-full text-lg hover:bg-yellow-300 transition duration-300">
+                    Akses EggMonitor
+                </a>
+            </div>
+            
+            <div class="relative lg:order-1">
+                <div class="w-full h-96 bg-gradient-to-br from-purple-900 to-purple-600 rounded-2xl flex items-center justify-center">
+                    <img src="{{ url_for('static', filename='css/img/icons/eggmonitori.png') }}" alt="EggMonitor" class="h-32 w-32 object-contain" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                    <span class="text-8xl" style="display: none;">📊</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Login Section -->
+<section id="login" class="py-24 login-section text-pure-white">
+    <div class="container mx-auto px-6 lg:px-8 max-w-4xl">
+        <div class="text-center mb-16">
+            <h2 class="font-title text-5xl font-bold mb-6">
+                Akses Layanan
+            </h2>
+            <p class="font-sans text-xl text-gray-300 max-w-2xl mx-auto">
+                Login untuk mengakses platform EggMart atau EggMonitor sesuai dengan peran Anda.
+            </p>
+        </div>
+        
+        <div class="bg-primary-black rounded-2xl p-8 border border-gray-800">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="text-center">
+                    <div class="w-20 h-20 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <img src="{{ url_for('static', filename='css/img/icons/eggmarti.png') }}" alt="EggMart" class="h-10 w-10 object-contain" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                        <span class="text-2xl" style="display: none;">🛒</span>
+                    </div>
+                    <h3 class="font-sans text-2xl font-semibold mb-4">EggMart</h3>
+                    <p class="text-gray-400 mb-6">Untuk Pembeli dan Penjual telur berkualitas</p>
+                    <a href="{{ url_for('auth_login') }}" 
+                       class="font-sans inline-block bg-premium-gold text-primary-black font-bold py-3 px-8 rounded-full hover:bg-yellow-300 transition duration-300">
+                        Login sebagai Pembeli
+                    </a>
+                </div>
+                
+                <div class="text-center">
+                    <div class="w-20 h-20 bg-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <img src="{{ url_for('static', filename='css/img/icons/eggmonitori.png') }}" alt="EggMonitor" class="h-10 w-10 object-contain" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                        <span class="text-2xl" style="display: none;">📊</span>
+                    </div>
+                    <h3 class="font-sans text-2xl font-semibold mb-4">EggMonitor</h3>
+                    <p class="text-gray-400 mb-6">Untuk Pengusaha dan Pemilik Peternakan</p>
+                    <a href="{{ url_for('auth_login') }}" 
+                       class="font-sans inline-block bg-premium-gold text-primary-black font-bold py-3 px-8 rounded-full hover:bg-yellow-300 transition duration-300">
+                        Login sebagai Pengusaha
+                    </a>
+                </div>
+            </div>
+            
+            <div class="mt-8 pt-8 border-t border-gray-800 text-center">
+                <p class="text-gray-400 mb-4">Belum punya akun?</p>
+                <a href="{{ url_for('auth_register') }}" 
+                   class="font-sans inline-block border border-premium-gold text-premium-gold font-bold py-3 px-8 rounded-full hover:bg-premium-gold hover:text-primary-black transition duration-300">
+                    Daftar Sekarang
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="py-24 bg-primary-black text-center text-pure-white">
+    <div class="container mx-auto px-6 lg:px-8 max-w-7xl">
+        <h2 class="font-title text-5xl font-bold mb-6">
+            Butuh Informasi Lebih Lanjut?
+        </h2>
+        <p class="font-sans text-xl max-w-2xl mx-auto mb-10 text-gray-300">
+            Tim konsultan kami siap membantu Anda memilih solusi yang tepat untuk bisnis peternakan Anda.
+        </p>
+        <a href="{{ url_for('comprof_kontak') }}" 
+           class="font-sans inline-block bg-premium-gold text-primary-black font-bold py-4 px-12 rounded-full text-lg hover:bg-yellow-300 transition duration-300 hover-grow">
+            Konsultasi Gratis
+        </a>
+    </div>
+</section>
+{% endblock %}
