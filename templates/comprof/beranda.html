@@ -4,8 +4,13 @@
 
 {% block head %}
 <style>
+    html, body {
+        margin: 0;
+        padding: 0;
+    }
+
     .hero-bg {
-        background-image: url("{{ url_for('static', filename='img/hero-eggs.jpg') }}");
+        background-image: url("{{ url_for('static', filename='img/eggs.jpg') }}");
         background-size: cover;
         background-position: center;
         background-repeat: no-repeat;
@@ -13,7 +18,7 @@
     }
     
     .hero-overlay {
-        background: linear-gradient(to bottom, rgba(0,0,0,0.8) 0%, rgba(0,0,0,1) 100%);
+        background: linear-gradient(to bottom, rgba(0, 0, 0, 0.671) 60%, rgba(0,0,0,1) 100%);
     }
     
     .service-image {
@@ -28,6 +33,30 @@
     
     .hover-grow:hover {
         transform: translateY(-5px);
+    }
+
+    /* Navbar Scroll Effects */
+    .transparent-nav {
+        background: transparent !important;
+        border-bottom-color: transparent !important;
+        backdrop-filter: none;
+    }
+
+    .solid-nav {
+        background: #000000 !important;
+        border-bottom-color: #1a1a1a !important;
+        backdrop-filter: blur(10px);
+    }
+
+    /* Ensure hero section starts at the top */
+    .hero-section {
+        margin-top: 0 !important;
+        min-height: 90vh;
+    }
+
+    /* Adjust content to account for fixed navbar */
+    body {
+        scroll-padding-top: 96px;
     }
 </style>
 {% endblock %}
@@ -211,4 +240,38 @@
         </a>
     </div>
 </section>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const navbar = document.getElementById('mainNav');
+        const heroSection = document.querySelector('.hero-section');
+        
+        // Create an intersection observer
+        const observer = new IntersectionObserver(
+            (entries) => {
+                entries.forEach(entry => {
+                    if (!entry.isIntersecting) {
+                        // Hero section is out of view - make navbar solid
+                        navbar.classList.remove('transparent-nav');
+                        navbar.classList.add('solid-nav', 'bg-primary-black', 'border-dark-gray');
+                    } else {
+                        // Hero section is in view - make navbar transparent
+                        navbar.classList.add('transparent-nav');
+                        navbar.classList.remove('solid-nav', 'bg-primary-black', 'border-dark-gray');
+                    }
+                });
+            },
+            {
+                rootMargin: '-100px 0px 0px 0px', // Trigger when hero is 100px from top
+                threshold: 0
+            }
+        );
+    
+        // Start observing the hero section
+        if (heroSection) {
+            observer.observe(heroSection);
+        }
+    });
+    </script>
 {% endblock %}
+
