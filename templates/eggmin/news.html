@@ -168,40 +168,308 @@
     </form>
   </div>
 </div>
+
+<!-- Edit News Modal -->
+<div id="editNewsModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden">
+  <div class="bg-card rounded-lg p-6 w-full max-w-2xl border border-border max-h-[90vh] overflow-y-auto">
+    <h3 class="text-lg font-semibold mb-4">Edit Berita</h3>
+    <form id="editNewsForm" class="space-y-4">
+      <input type="hidden" name="news_id" id="edit_news_id">
+      
+      <div>
+        <label class="block text-sm font-medium mb-2">Judul Berita</label>
+        <input type="text" name="title" id="edit_title" required class="w-full px-3 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+      </div>
+      
+      <div>
+        <label class="block text-sm font-medium mb-2">Gambar URL (opsional)</label>
+        <input type="url" name="image_url" id="edit_image_url" class="w-full px-3 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary" placeholder="https://example.com/image.jpg">
+      </div>
+      
+      <div>
+        <label class="block text-sm font-medium mb-2">Konten Berita</label>
+        <textarea name="content" id="edit_content" required rows="10" class="w-full px-3 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary resize-vertical"></textarea>
+      </div>
+      
+      <div class="flex items-center gap-2">
+        <input type="checkbox" name="is_published" id="edit_is_published" class="rounded border-border">
+        <label for="edit_is_published" class="text-sm">Publikasikan</label>
+      </div>
+      
+      <div class="flex gap-3 pt-4">
+        <button type="submit" class="flex-1 bg-primary text-primary-foreground py-2 rounded-lg hover:bg-primary/90 transition-colors">
+          Perbarui Berita
+        </button>
+        <button type="button" onclick="closeEditNewsModal()" class="flex-1 bg-secondary py-2 rounded-lg hover:bg-secondary/80 transition-colors">
+          Batal
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Toggle Publish Confirmation Modal -->
+<div id="togglePublishModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden">
+  <div class="bg-card rounded-lg p-6 w-full max-w-md border border-border">
+    <h3 class="text-lg font-semibold mb-4" id="togglePublishTitle">Konfirmasi</h3>
+    <p class="text-muted-foreground mb-6" id="togglePublishMessage"></p>
+    <div class="flex gap-3">
+      <button onclick="confirmTogglePublish()" class="flex-1 bg-primary text-primary-foreground py-2 rounded-lg hover:bg-primary/90 transition-colors" id="togglePublishConfirm">
+        Ya
+      </button>
+      <button onclick="closeTogglePublishModal()" class="flex-1 bg-secondary py-2 rounded-lg hover:bg-secondary/80 transition-colors">
+        Batal
+      </button>
+    </div>
+  </div>
+</div>
 {% endblock %}
 
 {% block scripts %}
 <script>
+// news.html - UPDATED SCRIPTS
+let currentNewsId = null;
+
+// Add News Modal Functions
 function openAddNewsModal() {
   document.getElementById('addNewsModal').classList.remove('hidden');
 }
 
 function closeAddNewsModal() {
   document.getElementById('addNewsModal').classList.add('hidden');
+  document.getElementById('addNewsForm').reset();
 }
 
+// Edit News Modal Functions
+function openEditNewsModal() {
+  document.getElementById('editNewsModal').classList.remove('hidden');
+}
+
+function closeEditNewsModal() {
+  document.getElementById('editNewsModal').classList.add('hidden');
+  document.getElementById('editNewsForm').reset();
+  currentNewsId = null;
+}
+
+// Toggle Publish Modal Functions
+function openTogglePublishModal() {
+  document.getElementById('togglePublishModal').classList.remove('hidden');
+}
+
+function closeTogglePublishModal() {
+  document.getElementById('togglePublishModal').classList.add('hidden');
+  currentNewsId = null;
+}
+
+// Handle form submission for creating news
+document.getElementById('addNewsForm').addEventListener('submit', function(e) {
+  e.preventDefault();
+  
+  const formData = new FormData(this);
+  
+  fetch('/eggmin/api/news/create', {
+    method: 'POST',
+    body: formData
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      alert('Berita berhasil dibuat!');
+      closeAddNewsModal();
+      location.reload();
+    } else {
+      alert('Error: ' + data.error);
+    }
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    alert('Terjadi kesalahan saat membuat berita');
+  });
+});
+
+// Handle form submission for editing news
+document.getElementById('editNewsForm').addEventListener('submit', function(e) {
+  e.preventDefault();
+  
+  if (!currentNewsId) {
+    alert('News ID tidak valid');
+    return;
+  }
+  
+  const formData = new FormData(this);
+  
+  fetch(`/eggmin/api/news/update/${currentNewsId}`, {
+    method: 'POST',
+    body: formData
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      alert('Berita berhasil diperbarui!');
+      closeEditNewsModal();
+      location.reload();
+    } else {
+      alert('Error: ' + data.error);
+    }
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    alert('Terjadi kesalahan saat memperbarui berita');
+  });
+});
+
+// Edit News Function
 function editNews(newsId) {
-  alert('Edit news: ' + newsId);
-  // Implement edit functionality
+  console.log('Editing news ID:', newsId);
+  currentNewsId = newsId;
+  
+  // Show loading state
+  const editButton = event.target.closest('button');
+  const originalHTML = editButton.innerHTML;
+  editButton.innerHTML = '<i data-lucide="loader" class="w-4 h-4 animate-spin"></i>';
+  
+  // Fetch news data from API
+  fetch(`/eggmin/api/news/${newsId}`)
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      return response.json();
+    })
+    .then(data => {
+      // Restore button
+      editButton.innerHTML = originalHTML;
+      
+      if (data.success) {
+        const news = data.news;
+        console.log('News data:', news);
+        
+        // Populate form fields
+        document.getElementById('edit_news_id').value = news.id;
+        document.getElementById('edit_title').value = news.title;
+        document.getElementById('edit_image_url').value = news.image_url || '';
+        document.getElementById('edit_content').value = news.content;
+        document.getElementById('edit_is_published').checked = news.is_published;
+        
+        // Open edit modal
+        openEditNewsModal();
+      } else {
+        alert('Error: ' + data.error);
+      }
+    })
+    .catch(error => {
+      // Restore button
+      editButton.innerHTML = originalHTML;
+      console.error('Error details:', error);
+      alert('Terjadi kesalahan saat mengambil data berita: ' + error.message);
+    });
 }
 
+// Toggle Publish Function
 function togglePublish(newsId) {
-  alert('Toggle publish: ' + newsId);
-  // Implement publish/unpublish functionality
+  console.log('Toggling publish for news ID:', newsId);
+  currentNewsId = newsId;
+  
+  // Show loading state
+  const toggleButton = event.target.closest('button');
+  const originalHTML = toggleButton.innerHTML;
+  toggleButton.innerHTML = '<i data-lucide="loader" class="w-4 h-4 animate-spin"></i>';
+  
+  // Fetch current news status to show appropriate confirmation message
+  fetch(`/eggmin/api/news/${newsId}`)
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      return response.json();
+    })
+    .then(data => {
+      // Restore button
+      toggleButton.innerHTML = originalHTML;
+      
+      if (data.success) {
+        const news = data.news;
+        const isPublished = news.is_published;
+        
+        // Set modal content based on current status
+        document.getElementById('togglePublishTitle').textContent = 
+          isPublished ? 'Unpublish Berita' : 'Publish Berita';
+        document.getElementById('togglePublishMessage').textContent = 
+          isPublished 
+            ? 'Apakah Anda yakin ingin menyimpan berita ini sebagai draft? Berita tidak akan tampil di halaman publik.'
+            : 'Apakah Anda yakin ingin mempublikasikan berita ini? Berita akan tampil di halaman publik.';
+        document.getElementById('togglePublishConfirm').textContent = 
+          isPublished ? 'Ya, Simpan sebagai Draft' : 'Ya, Publikasikan';
+        
+        openTogglePublishModal();
+      } else {
+        alert('Error: ' + data.error);
+      }
+    })
+    .catch(error => {
+      // Restore button
+      toggleButton.innerHTML = originalHTML;
+      console.error('Error details:', error);
+      alert('Terjadi kesalahan saat mengambil data berita: ' + error.message);
+    });
 }
 
+// Confirm Toggle Publish
+function confirmTogglePublish() {
+  if (!currentNewsId) return;
+  
+  fetch(`/eggmin/api/news/toggle-publish/${currentNewsId}`, {
+    method: 'POST'
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      alert(data.message);
+      closeTogglePublishModal();
+      location.reload();
+    } else {
+      alert('Error: ' + data.error);
+    }
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    alert('Terjadi kesalahan saat mengubah status publikasi');
+  });
+}
+
+// Delete News Function
 function deleteNews(newsId) {
-  if (confirm('Apakah Anda yakin ingin menghapus berita ini?')) {
-    alert('Delete news: ' + newsId);
-    // Implement delete functionality
-  }
+  if (!confirm('Apakah Anda yakin ingin menghapus berita ini? Tindakan ini tidak dapat dibatalkan.')) return;
+  
+  fetch(`/eggmin/api/news/delete/${newsId}`, {
+    method: 'POST'
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      alert('Berita berhasil dihapus!');
+      location.reload();
+    } else {
+      alert('Error: ' + data.error);
+    }
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    alert('Terjadi kesalahan saat menghapus berita');
+  });
 }
 
-// Close modal when clicking outside
+// Close modals when clicking outside
 document.getElementById('addNewsModal').addEventListener('click', function(e) {
-  if (e.target === this) {
-    closeAddNewsModal();
-  }
+  if (e.target === this) closeAddNewsModal();
+});
+
+document.getElementById('editNewsModal').addEventListener('click', function(e) {
+  if (e.target === this) closeEditNewsModal();
+});
+
+document.getElementById('togglePublishModal').addEventListener('click', function(e) {
+  if (e.target === this) closeTogglePublishModal();
 });
 </script>
 

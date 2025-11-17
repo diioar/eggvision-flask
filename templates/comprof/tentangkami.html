@@ -171,51 +171,81 @@
         <h2 class="font-title text-5xl font-bold text-center mb-16 text-gray-800 dark:text-pure-white">
             Tim Kami
         </h2>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 lg:grid-cols-4">
+
             <!-- Team Member 1 -->
             <div class="team-card bg-gray-50 dark:bg-dark-gray rounded-lg overflow-hidden border border-gray-200 dark:border-gray-800">
                 <div class="h-64 overflow-hidden">
-                    <img src="{{ url_for('static', filename='img/team-ceo.jpg') }}" alt="CEO" class="w-full h-full object-cover" onerror="this.src='https://images.unsplash.com/photo-1560250097-0b93528c311a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80'">
+                    <img src="{{ url_for('static', filename='img/team-ceo.jpg') }}" 
+                         alt="CEO" 
+                         class="w-full h-full object-cover"
+                         onerror="this.src='https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=1000&q=80'">
                 </div>
                 <div class="p-6">
-                    <h3 class="font-sans text-xl font-semibold mb-1 text-gray-800 dark:text-pure-white">Ahmad Wijaya</h3>
-                    <p class="text-premium-gold font-semibold mb-3">CEO & Founder</p>
+                    <h3 class="font-sans text-xl font-semibold mb-1">Dio Aranda</h3>
+                    <p class="text-premium-gold font-semibold mb-3">Project Manager</p>
                     <p class="text-gray-600 dark:text-gray-400 text-sm">
-                        15+ tahun pengalaman dalam teknologi agrikultur dan bisnis scale-up.
+                        Mengelola alur kerja tim, mengatur timeline proyek, serta berfokus pada pengembangan dan pengawasan bagian Machine Learning untuk memastikan model berjalan optimal.
                     </p>
                 </div>
             </div>
-            
+
             <!-- Team Member 2 -->
             <div class="team-card bg-gray-50 dark:bg-dark-gray rounded-lg overflow-hidden border border-gray-200 dark:border-gray-800">
                 <div class="h-64 overflow-hidden">
-                    <img src="{{ url_for('static', filename='img/team-cto.jpg') }}" alt="CTO" class="w-full h-full object-cover" onerror="this.src='https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80'">
+                    <img src="{{ url_for('static', filename='img/team-cto.jpg') }}" 
+                         alt="CTO" 
+                         class="w-full h-full object-cover"
+                         onerror="this.src='https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=1000&q=80'">
                 </div>
                 <div class="p-6">
-                    <h3 class="font-sans text-xl font-semibold mb-1 text-gray-800 dark:text-pure-white">Dr. Sarah Chen</h3>
-                    <p class="text-premium-gold font-semibold mb-3">Chief Technology Officer</p>
+                    <h3 class="font-sans text-xl font-semibold mb-1">Sarah Aninditya </h3>
+                    <p class="text-premium-gold font-semibold mb-3">Fullstack Developer</p>
                     <p class="text-gray-600 dark:text-gray-400 text-sm">
-                        PhD in Computer Vision, sebelumnya lead researcher di tech unicorn.
+                        Bertanggung jawab pada pengembangan backend dan frontend sistem, serta menyusun dokumentasi proyek agar proses pengembangan berjalan terstruktur dan mudah dipahami.
                     </p>
                 </div>
             </div>
-            
+
             <!-- Team Member 3 -->
             <div class="team-card bg-gray-50 dark:bg-dark-gray rounded-lg overflow-hidden border border-gray-200 dark:border-gray-800">
                 <div class="h-64 overflow-hidden">
-                    <img src="{{ url_for('static', filename='img/team-cmo.jpg') }}" alt="CMO" class="w-full h-full object-cover" onerror="this.src='https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80'">
+                    <img src="{{ url_for('static', filename='img/team-cmo.jpg') }}" 
+                         alt="CMO" 
+                         class="w-full h-full object-cover"
+                         onerror="this.src='https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?auto=format&fit=crop&w=1000&q=80'">
                 </div>
                 <div class="p-6">
-                    <h3 class="font-sans text-xl font-semibold mb-1 text-gray-800 dark:text-pure-white">Maria Rodriguez</h3>
-                    <p class="text-premium-gold font-semibold mb-3">Chief Marketing Officer</p>
+                    <h3 class="font-sans text-xl font-semibold mb-1">Fauzi Luqman Noor I.</h3>
+                    <p class="text-premium-gold font-semibold mb-3">Machine Learning Engineer</p>
                     <p class="text-gray-600 dark:text-gray-400 text-sm">
-                        Spesialis branding dan market expansion dengan track record sukses.
+                        Spesialis branding dan market expansion dengan rekam jejak global.
                     </p>
                 </div>
             </div>
+
+            <!-- Team Member 4 -->
+            <div class="team-card bg-gray-50 dark:bg-dark-gray rounded-lg overflow-hidden border border-gray-200 dark:border-gray-800">
+                <div class="h-64 overflow-hidden">
+                    <img src="{{ url_for('static', filename='img/team-coo.jpg') }}" 
+                         alt="COO" 
+                         class="w-full h-full object-cover"
+                         onerror="this.src='https://images.unsplash.com/photo-1502685104226-ee32379fefbe?auto=format&fit=crop&w=1000&q=80'">
+                </div>
+                <div class="p-6">
+                    <h3 class="font-sans text-xl font-semibold mb-1">M. Dzaky Az-Zshahir</h3>
+                    <p class="text-premium-gold font-semibold mb-3">Prototype Designer</p>
+                    <p class="text-gray-600 dark:text-gray-400 text-sm">
+                        Merancang dan mengembangkan desain prototipe EggVision, memastikan rancangan alat sesuai kebutuhan teknis serta siap untuk proses implementasi.
+                    </p>
+                </div>
+            </div>
+
         </div>
     </div>
 </section>
+
 
 <!-- Hubungi Kami Section -->
 <section id="kontak" class="section-anchor py-24 bg-gray-100 dark:bg-dark-gray text-gray-900 dark:text-pure-white">

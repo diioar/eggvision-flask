@@ -985,6 +985,560 @@ def eggmin_chats():
                          active_menu='chats',
                          now=datetime.now())
 
+# ==================== EGGMIN API ROUTES (ADMIN ONLY) ====================
+# Users Management APIs
+@app.route('/eggmin/api/users/update/<int:user_id>', methods=['POST'])
+@login_required
+def eggmin_api_users_update(user_id):
+    if current_user.role != 'admin':
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 403
+    
+    try:
+        name = request.form.get('name')
+        email = request.form.get('email')
+        role = request.form.get('role')
+        
+        if not all([name, email, role]):
+            return jsonify({'success': False, 'error': 'All fields are required'}), 400
+        
+        conn = get_db_connection()
+        if not conn:
+            return jsonify({'success': False, 'error': 'Database connection failed'}), 500
+        
+        try:
+            cur = conn.cursor()
+            
+            # Check if user exists and not current user
+            cur.execute("SELECT * FROM users WHERE id = %s", (user_id,))
+            user = cur.fetchone()
+            if not user:
+                return jsonify({'success': False, 'error': 'User not found'}), 404
+            
+            # Check if email already exists for other users
+            cur.execute("SELECT id FROM users WHERE email = %s AND id != %s", (email, user_id))
+            if cur.fetchone():
+                return jsonify({'success': False, 'error': 'Email already exists'}), 400
+            
+            cur.execute(
+                "UPDATE users SET name = %s, email = %s, role = %s WHERE id = %s",
+                (name, email, role, user_id)
+            )
+            conn.commit()
+            cur.close()
+            
+            return jsonify({'success': True, 'message': 'User updated successfully'})
+            
+        except mysql.connector.Error as e:
+            print(f"Database error in user update: {e}")
+            return jsonify({'success': False, 'error': 'Database error'}), 500
+        finally:
+            if conn:
+                conn.close()
+                
+    except Exception as e:
+        print(f"Error in user update: {e}")
+        return jsonify({'success': False, 'error': 'Internal server error'}), 500
+
+@app.route('/eggmin/api/users/toggle-status/<int:user_id>', methods=['POST'])
+@login_required
+def eggmin_api_users_toggle_status(user_id):
+    if current_user.role != 'admin':
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 403
+    
+    # Note: In a real application, you might want to implement soft delete
+    # or status field instead of direct deletion
+    return jsonify({'success': False, 'error': 'User status toggle not implemented. Use delete instead.'}), 501
+
+@app.route('/eggmin/api/users/delete/<int:user_id>', methods=['POST'])
+@login_required
+def eggmin_api_users_delete(user_id):
+    if current_user.role != 'admin':
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 403
+    
+    # Prevent self-deletion
+    if user_id == current_user.id:
+        return jsonify({'success': False, 'error': 'Cannot delete your own account'}), 400
+    
+    conn = get_db_connection()
+    if not conn:
+        return jsonify({'success': False, 'error': 'Database connection failed'}), 500
+    
+    try:
+        cur = conn.cursor()
+        
+        # Check if user exists
+        cur.execute("SELECT * FROM users WHERE id = %s", (user_id,))
+        if not cur.fetchone():
+            return jsonify({'success': False, 'error': 'User not found'}), 404
+        
+        # In a real application, you might want to:
+        # 1. Set user status to inactive instead of deleting
+        # 2. Handle related data (products, orders, etc.)
+        # 3. Use soft delete
+        
+        # For now, we'll do direct deletion (be careful!)
+        cur.execute("DELETE FROM users WHERE id = %s", (user_id,))
+        conn.commit()
+        cur.close()
+        
+        return jsonify({'success': True, 'message': 'User deleted successfully'})
+        
+    except mysql.connector.Error as e:
+        print(f"Database error in user delete: {e}")
+        return jsonify({'success': False, 'error': 'Database error'}), 500
+    finally:
+        if conn:
+            conn.close()
+
+# Users Management APIs - CREATE USER
+@app.route('/eggmin/api/users/create', methods=['POST'])
+@login_required
+def eggmin_api_users_create():
+    if current_user.role != 'admin':
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 403
+    
+    try:
+        name = request.form.get('name')
+        email = request.form.get('email')
+        password = request.form.get('password')
+        role = request.form.get('role')
+        
+        if not all([name, email, password, role]):
+            return jsonify({'success': False, 'error': 'Semua field harus diisi'}), 400
+        
+        # Validate email format
+        if '@' not in email:
+            return jsonify({'success': False, 'error': 'Format email tidak valid'}), 400
+        
+        # Validate password length
+        if len(password) < 6:
+            return jsonify({'success': False, 'error': 'Password harus minimal 6 karakter'}), 400
+        
+        conn = get_db_connection()
+        if not conn:
+            return jsonify({'success': False, 'error': 'Database connection failed'}), 500
+        
+        try:
+            cur = conn.cursor()
+            
+            # Check if email already exists
+            cur.execute("SELECT id FROM users WHERE email = %s", (email,))
+            if cur.fetchone():
+                return jsonify({'success': False, 'error': 'Email sudah terdaftar'}), 400
+            
+            # Hash password and create user
+            hashed_password = generate_password_hash(password)
+            
+            cur.execute(
+                "INSERT INTO users (name, email, password, role) VALUES (%s, %s, %s, %s)",
+                (name, email, hashed_password, role)
+            )
+            conn.commit()
+            user_id = cur.lastrowid
+            cur.close()
+            
+            return jsonify({'success': True, 'message': 'User berhasil dibuat', 'user_id': user_id})
+            
+        except mysql.connector.Error as e:
+            print(f"Database error in user create: {e}")
+            return jsonify({'success': False, 'error': 'Database error'}), 500
+        finally:
+            if conn:
+                conn.close()
+                
+    except Exception as e:
+        print(f"Error in user create: {e}")
+        return jsonify({'success': False, 'error': 'Internal server error'}), 500
+
+# GET USER DATA FOR EDIT
+@app.route('/eggmin/api/users/<int:user_id>', methods=['GET'])
+@login_required
+def eggmin_api_users_get(user_id):
+    if current_user.role != 'admin':
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 403
+    
+    conn = get_db_connection()
+    if not conn:
+        return jsonify({'success': False, 'error': 'Database connection failed'}), 500
+    
+    try:
+        cur = conn.cursor(dictionary=True)
+        cur.execute("SELECT id, name, email, role, created_at FROM users WHERE id = %s", (user_id,))
+        user = cur.fetchone()
+        cur.close()
+        
+        if not user:
+            return jsonify({'success': False, 'error': 'User not found'}), 404
+        
+        return jsonify({'success': True, 'user': user})
+        
+    except mysql.connector.Error as e:
+        print(f"Database error in user get: {e}")
+        return jsonify({'success': False, 'error': 'Database error'}), 500
+    finally:
+        if conn:
+            conn.close()
+
+# News Management APIs
+@app.route('/eggmin/api/news/create', methods=['POST'])
+@login_required
+def eggmin_api_news_create():
+    if current_user.role != 'admin':
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 403
+    
+    try:
+        title = request.form.get('title')
+        content = request.form.get('content')
+        image_url = request.form.get('image_url')
+        is_published = request.form.get('is_published') == 'on'
+        
+        if not title or not content:
+            return jsonify({'success': False, 'error': 'Title and content are required'}), 400
+        
+        conn = get_db_connection()
+        if not conn:
+            return jsonify({'success': False, 'error': 'Database connection failed'}), 500
+        
+        try:
+            cur = conn.cursor()
+            published_at = datetime.now() if is_published else None
+            
+            cur.execute(
+                "INSERT INTO news (title, content, image_url, is_published, published_at) VALUES (%s, %s, %s, %s, %s)",
+                (title, content, image_url, is_published, published_at)
+            )
+            conn.commit()
+            news_id = cur.lastrowid
+            cur.close()
+            
+            return jsonify({'success': True, 'message': 'News created successfully', 'news_id': news_id})
+            
+        except mysql.connector.Error as e:
+            print(f"Database error in news create: {e}")
+            return jsonify({'success': False, 'error': 'Database error'}), 500
+        finally:
+            if conn:
+                conn.close()
+                
+    except Exception as e:
+        print(f"Error in news create: {e}")
+        return jsonify({'success': False, 'error': 'Internal server error'}), 500
+
+# ==================== EGGMIN NEWS API ROUTES ====================
+
+# GET NEWS DATA FOR EDIT
+@app.route('/eggmin/api/news/<int:news_id>', methods=['GET'])
+@login_required
+def eggmin_api_news_get(news_id):
+    if current_user.role != 'admin':
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 403
+    
+    conn = get_db_connection()
+    if not conn:
+        return jsonify({'success': False, 'error': 'Database connection failed'}), 500
+    
+    try:
+        cur = conn.cursor(dictionary=True)
+        cur.execute("SELECT * FROM news WHERE id = %s", (news_id,))
+        news = cur.fetchone()
+        cur.close()
+        
+        if not news:
+            return jsonify({'success': False, 'error': 'News not found'}), 404
+        
+        # Convert datetime to string for JSON serialization
+        if news['published_at']:
+            news['published_at'] = news['published_at'].strftime('%Y-%m-%d %H:%M:%S')
+        if news['created_at']:
+            news['created_at'] = news['created_at'].strftime('%Y-%m-%d %H:%M:%S')
+            
+        return jsonify({'success': True, 'news': news})
+        
+    except mysql.connector.Error as e:
+        print(f"Database error in news get: {e}")
+        return jsonify({'success': False, 'error': 'Database error'}), 500
+    finally:
+        if conn:
+            conn.close()
+
+# UPDATE NEWS
+@app.route('/eggmin/api/news/update/<int:news_id>', methods=['POST'])
+@login_required
+def eggmin_api_news_update(news_id):
+    if current_user.role != 'admin':
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 403
+    
+    try:
+        title = request.form.get('title')
+        content = request.form.get('content')
+        image_url = request.form.get('image_url')
+        is_published = request.form.get('is_published') == 'on'
+        
+        if not title or not content:
+            return jsonify({'success': False, 'error': 'Judul dan konten berita harus diisi'}), 400
+        
+        conn = get_db_connection()
+        if not conn:
+            return jsonify({'success': False, 'error': 'Database connection failed'}), 500
+        
+        try:
+            cur = conn.cursor()
+            
+            # Check if news exists
+            cur.execute("SELECT * FROM news WHERE id = %s", (news_id,))
+            if not cur.fetchone():
+                return jsonify({'success': False, 'error': 'Berita tidak ditemukan'}), 404
+            
+            # Get current published status
+            cur.execute("SELECT is_published, published_at FROM news WHERE id = %s", (news_id,))
+            current_data = cur.fetchone()
+            current_status = current_data[0]
+            current_published_at = current_data[1]
+            
+            published_at = current_published_at
+            if is_published and not current_status:
+                # If changing from draft to published, set published_at to now
+                published_at = datetime.now()
+            elif not is_published:
+                # If unpublishing, set published_at to None
+                published_at = None
+            
+            cur.execute(
+                "UPDATE news SET title = %s, content = %s, image_url = %s, is_published = %s, published_at = %s WHERE id = %s",
+                (title, content, image_url, is_published, published_at, news_id)
+            )
+                
+            conn.commit()
+            cur.close()
+            
+            return jsonify({'success': True, 'message': 'Berita berhasil diperbarui'})
+            
+        except mysql.connector.Error as e:
+            print(f"Database error in news update: {e}")
+            return jsonify({'success': False, 'error': 'Database error'}), 500
+        finally:
+            if conn:
+                conn.close()
+                
+    except Exception as e:
+        print(f"Error in news update: {e}")
+        return jsonify({'success': False, 'error': 'Internal server error'}), 500
+
+# TOGGLE PUBLISH STATUS
+@app.route('/eggmin/api/news/toggle-publish/<int:news_id>', methods=['POST'])
+@login_required
+def eggmin_api_news_toggle_publish(news_id):
+    if current_user.role != 'admin':
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 403
+    
+    conn = get_db_connection()
+    if not conn:
+        return jsonify({'success': False, 'error': 'Database connection failed'}), 500
+    
+    try:
+        cur = conn.cursor(dictionary=True)
+        
+        # Get current status
+        cur.execute("SELECT is_published FROM news WHERE id = %s", (news_id,))
+        result = cur.fetchone()
+        if not result:
+            return jsonify({'success': False, 'error': 'Berita tidak ditemukan'}), 404
+        
+        current_status = result['is_published']
+        new_status = not current_status
+        published_at = datetime.now() if new_status else None
+        
+        cur.execute(
+            "UPDATE news SET is_published = %s, published_at = %s WHERE id = %s",
+            (new_status, published_at, news_id)
+        )
+            
+        conn.commit()
+        cur.close()
+        
+        action = "dipublikasikan" if new_status else "disimpan sebagai draft"
+        return jsonify({'success': True, 'message': f'Berita berhasil {action}', 'new_status': new_status})
+        
+    except mysql.connector.Error as e:
+        print(f"Database error in news toggle: {e}")
+        return jsonify({'success': False, 'error': 'Database error'}), 500
+    finally:
+        if conn:
+            conn.close()
+
+# DELETE NEWS
+@app.route('/eggmin/api/news/delete/<int:news_id>', methods=['POST'])
+@login_required
+def eggmin_api_news_delete(news_id):
+    if current_user.role != 'admin':
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 403
+    
+    conn = get_db_connection()
+    if not conn:
+        return jsonify({'success': False, 'error': 'Database connection failed'}), 500
+    
+    try:
+        cur = conn.cursor()
+        
+        # Check if news exists
+        cur.execute("SELECT * FROM news WHERE id = %s", (news_id,))
+        if not cur.fetchone():
+            return jsonify({'success': False, 'error': 'Berita tidak ditemukan'}), 404
+        
+        cur.execute("DELETE FROM news WHERE id = %s", (news_id,))
+        conn.commit()
+        cur.close()
+        
+        return jsonify({'success': True, 'message': 'Berita berhasil dihapus'})
+        
+    except mysql.connector.Error as e:
+        print(f"Database error in news delete: {e}")
+        return jsonify({'success': False, 'error': 'Database error'}), 500
+    finally:
+        if conn:
+            conn.close()
+
+# Chats Management APIs
+@app.route('/eggmin/api/chats/reply/<int:chat_id>', methods=['POST'])
+@login_required
+def eggmin_api_chats_reply(chat_id):
+    if current_user.role != 'admin':
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 403
+    
+    try:
+        message = request.form.get('message', '').strip()
+        
+        if not message:
+            return jsonify({'success': False, 'error': 'Message is required'}), 400
+        
+        conn = get_db_connection()
+        if not conn:
+            return jsonify({'success': False, 'error': 'Database connection failed'}), 500
+        
+        try:
+            cur = conn.cursor()
+            
+            # Get original message details
+            cur.execute('''
+                SELECT user_id, guest_email, guest_name, message_type 
+                FROM chat_messages 
+                WHERE id = %s
+            ''', (chat_id,))
+            original_msg = cur.fetchone()
+            
+            if not original_msg:
+                return jsonify({'success': False, 'error': 'Original message not found'}), 404
+            
+            # Determine reply type and recipient
+            if original_msg[0]:  # user_id exists (registered user)
+                reply_type = 'admin_to_user'
+                user_id = original_msg[0]
+                guest_email = None
+                guest_name = None
+            else:  # guest user
+                reply_type = 'admin_to_guest'
+                user_id = None
+                guest_email = original_msg[1]
+                guest_name = original_msg[2]
+            
+            # Insert reply message
+            cur.execute('''
+                INSERT INTO chat_messages 
+                (user_id, guest_name, guest_email, message, message_type, parent_message_id, status) 
+                VALUES (%s, %s, %s, %s, %s, %s, 'read')
+            ''', (user_id, guest_name, guest_email, message, reply_type, chat_id))
+            
+            # Update original message status to replied
+            cur.execute('''
+                UPDATE chat_messages 
+                SET status = 'replied' 
+                WHERE id = %s
+            ''', (chat_id,))
+            
+            conn.commit()
+            cur.close()
+            
+            # TODO: Send email notification to the user/guest
+            print(f"📩 Admin replied to chat {chat_id}: {message}")
+            
+            return jsonify({'success': True, 'message': 'Reply sent successfully'})
+            
+        except mysql.connector.Error as e:
+            print(f"Database error in chat reply: {e}")
+            return jsonify({'success': False, 'error': 'Database error'}), 500
+        finally:
+            if conn:
+                conn.close()
+                
+    except Exception as e:
+        print(f"Error in chat reply: {e}")
+        return jsonify({'success': False, 'error': 'Internal server error'}), 500
+
+@app.route('/eggmin/api/chats/mark-read/<int:chat_id>', methods=['POST'])
+@login_required
+def eggmin_api_chats_mark_read(chat_id):
+    if current_user.role != 'admin':
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 403
+    
+    conn = get_db_connection()
+    if not conn:
+        return jsonify({'success': False, 'error': 'Database connection failed'}), 500
+    
+    try:
+        cur = conn.cursor()
+        
+        # Check if message exists
+        cur.execute("SELECT * FROM chat_messages WHERE id = %s", (chat_id,))
+        if not cur.fetchone():
+            return jsonify({'success': False, 'error': 'Message not found'}), 404
+        
+        cur.execute(
+            "UPDATE chat_messages SET status = 'read' WHERE id = %s",
+            (chat_id,)
+        )
+        conn.commit()
+        cur.close()
+        
+        return jsonify({'success': True, 'message': 'Message marked as read'})
+        
+    except mysql.connector.Error as e:
+        print(f"Database error in mark read: {e}")
+        return jsonify({'success': False, 'error': 'Database error'}), 500
+    finally:
+        if conn:
+            conn.close()
+
+@app.route('/eggmin/api/chats/delete/<int:chat_id>', methods=['POST'])
+@login_required
+def eggmin_api_chats_delete(chat_id):
+    if current_user.role != 'admin':
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 403
+    
+    conn = get_db_connection()
+    if not conn:
+        return jsonify({'success': False, 'error': 'Database connection failed'}), 500
+    
+    try:
+        cur = conn.cursor()
+        
+        # Check if message exists
+        cur.execute("SELECT * FROM chat_messages WHERE id = %s", (chat_id,))
+        if not cur.fetchone():
+            return jsonify({'success': False, 'error': 'Message not found'}), 404
+        
+        cur.execute("DELETE FROM chat_messages WHERE id = %s", (chat_id,))
+        conn.commit()
+        cur.close()
+        
+        return jsonify({'success': True, 'message': 'Message deleted successfully'})
+        
+    except mysql.connector.Error as e:
+        print(f"Database error in chat delete: {e}")
+        return jsonify({'success': False, 'error': 'Database error'}), 500
+    finally:
+        if conn:
+            conn.close()
+
 # Initialize database when app starts
 with app.app_context():
     init_db()

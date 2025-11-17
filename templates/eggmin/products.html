@@ -196,21 +196,90 @@
 {% block scripts %}
 <script>
 function editProduct(productId) {
-  alert('Edit product: ' + productId);
-  // Implement edit functionality
+  // For now, show alert. You can implement edit modal later
+  alert('Edit produk ID: ' + productId + '\n\nFitur edit akan membuka modal dengan data produk yang ada.');
+  // TODO: Implement edit modal functionality
 }
 
 function toggleProductStatus(productId) {
-  alert('Toggle product status: ' + productId);
-  // Implement status toggle functionality
+  if (!confirm('Apakah Anda yakin ingin mengubah status produk ini?')) return;
+  
+  fetch(`/eggmin/api/products/toggle-status/${productId}`, {
+    method: 'POST'
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      alert('Status produk berhasil diubah!');
+      location.reload();
+    } else {
+      alert('Error: ' + data.error);
+    }
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    alert('Terjadi kesalahan saat mengubah status produk');
+  });
 }
 
 function deleteProduct(productId) {
-  if (confirm('Apakah Anda yakin ingin menghapus produk ini?')) {
-    alert('Delete product: ' + productId);
-    // Implement delete functionality
-  }
+  if (!confirm('Apakah Anda yakin ingin menghapus produk ini? Tindakan ini tidak dapat dibatalkan.')) return;
+  
+  fetch(`/eggmin/api/products/delete/${productId}`, {
+    method: 'POST'
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      alert('Produk berhasil dihapus!');
+      location.reload();
+    } else {
+      alert('Error: ' + data.error);
+    }
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    alert('Terjadi kesalahan saat menghapus produk');
+  });
 }
+
+// Search and filter functionality
+document.addEventListener('DOMContentLoaded', function() {
+  const searchInput = document.querySelector('input[placeholder="Cari produk..."]');
+  const gradeFilter = document.querySelector('select:first-of-type');
+  const statusFilter = document.querySelector('select:last-of-type');
+  
+  function filterProducts() {
+    const searchTerm = searchInput.value.toLowerCase();
+    const gradeValue = gradeFilter.value;
+    const statusValue = statusFilter.value;
+    
+    const rows = document.querySelectorAll('tbody tr');
+    
+    rows.forEach(row => {
+      const productName = row.querySelector('.font-medium').textContent.toLowerCase();
+      const productDesc = row.querySelector('.text-muted-foreground').textContent.toLowerCase();
+      const gradeBadge = row.querySelector('.badge').textContent;
+      const statusBadge = row.querySelector('td:nth-child(6) .badge').textContent;
+      
+      const matchesSearch = productName.includes(searchTerm) || productDesc.includes(searchTerm);
+      const matchesGrade = !gradeValue || gradeBadge.includes(gradeValue);
+      const matchesStatus = !statusValue || 
+        (statusValue === 'active' && statusBadge === 'Aktif') ||
+        (statusValue === 'inactive' && statusBadge === 'Nonaktif');
+      
+      if (matchesSearch && matchesGrade && matchesStatus) {
+        row.style.display = '';
+      } else {
+        row.style.display = 'none';
+      }
+    });
+  }
+  
+  searchInput.addEventListener('input', filterProducts);
+  gradeFilter.addEventListener('change', filterProducts);
+  statusFilter.addEventListener('change', filterProducts);
+});
 </script>
 
 <style>

@@ -108,8 +108,12 @@
                     Marketplace eksklusif untuk jual beli telur berkualitas yang telah terverifikasi oleh sistem grading EggVision. Hubungkan peternak langsung ke konsumen.
                 </p>
                 <a href="{{ url_for('comprof_layanan') }}" 
-                   class="mt-auto text-center bg-amber-600 hover:bg-amber-700 dark:bg-premium-gold dark:hover:bg-yellow-300 text-white dark:text-primary-black font-bold py-3 px-6 rounded-full transition duration-300">
-                   Pelajari Lebih Lanjut
+                   class="mt-auto text-center bg-amber-600 hover:bg-amber-700 dark:bg-premium-gold dark:hover:bg-yellow-300 text-white dark:text-primary-black font-bold py-3 px-6 rounded-full transition duration-300 mb-6">
+                   Pelajari EggMart Lebih Lanjut
+                </a>
+                <a href="{{ url_for('eggmart') }}"
+                    class="block text-center bg-premium-gold text-primary-black font-bold py-4 px-8 rounded-full hover:bg-yellow-300 transition duration-300">
+                    Login EggMart
                 </a>
             </div>
             
@@ -138,8 +142,12 @@
                     Dashboard pemantauan real-time untuk pemilik bisnis. Lacak produktivitas mesin, kualitas hasil panen, dan inventaris dari mana saja, kapan saja.
                 </p>
                 <a href="{{ url_for('comprof_layanan') }}" 
-                   class="mt-auto text-center bg-amber-600 hover:bg-amber-700 dark:bg-premium-gold dark:hover:bg-yellow-300 text-white dark:text-primary-black font-bold py-3 px-6 rounded-full transition duration-300">
+                   class="mt-auto text-center bg-amber-600 hover:bg-amber-700 dark:bg-premium-gold dark:hover:bg-yellow-300 text-white dark:text-primary-black font-bold py-3 px-6 rounded-full transition duration-300 mb-6">
                    Pelajari Lebih Lanjut
+                </a>
+                <a href="{{ url_for('eggmonitor') }}"
+                    class="block text-center bg-premium-gold text-primary-black font-bold py-4 px-8 rounded-full hover:bg-yellow-300 transition duration-300">
+                    Login EggMonitor
                 </a>
             </div>
 
@@ -244,7 +252,7 @@
         <p class="font-sans text-xl max-w-2xl mx-auto mb-10 text-gray-700 dark:text-gray-300">
             Hubungi tim kami untuk mendapatkan demo gratis dan konsultasi tentang bagaimana EggVision dapat membantu meningkatkan efisiensi dan profitabilitas peternakan Anda.
         </p>
-        <a href="{{ url_for('comprof_kontak') }}" 
+        <a href="{{ url_for('comprof_tentang_kami') }}#kontak" 
            class="font-sans inline-block bg-amber-600 hover:bg-amber-700 dark:bg-premium-gold dark:hover:bg-yellow-300 text-white dark:text-primary-black font-bold py-4 px-12 rounded-full text-lg transition duration-300 hover-grow">
             Hubungi Kami Sekarang
         </a>

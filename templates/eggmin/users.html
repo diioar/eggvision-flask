@@ -183,34 +183,210 @@
     </form>
   </div>
 </div>
+
+<!-- Edit User Modal -->
+<div id="editUserModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden">
+  <div class="bg-card rounded-lg p-6 w-96 border border-border">
+    <h3 class="text-lg font-semibold mb-4">Edit User</h3>
+    <form id="editUserForm" class="space-y-4">
+      <div>
+        <label class="block text-sm font-medium mb-2">Nama Lengkap</label>
+        <input type="text" id="editUserName" name="name" required 
+               class="w-full px-3 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+      </div>
+      <div>
+        <label class="block text-sm font-medium mb-2">Email</label>
+        <input type="email" id="editUserEmail" name="email" required 
+               class="w-full px-3 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+      </div>
+      <div>
+        <label class="block text-sm font-medium mb-2">Role</label>
+        <select id="editUserRole" name="role" required 
+                class="w-full px-3 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+          <option value="pembeli">Pembeli</option>
+          <option value="pengusaha">Pengusaha</option>
+          <option value="admin">Admin</option>
+        </select>
+      </div>
+      <div class="flex gap-3 pt-4">
+        <button type="submit" class="flex-1 bg-primary text-primary-foreground py-2 rounded-lg hover:bg-primary/90 transition-colors">
+          Simpan Perubahan
+        </button>
+        <button type="button" onclick="closeEditUserModal()" class="flex-1 bg-secondary py-2 rounded-lg hover:bg-secondary/80 transition-colors">
+          Batal
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
 {% endblock %}
 
 {% block scripts %}
 <script>
+let currentEditUserId = null;
+
 function openAddUserModal() {
   document.getElementById('addUserModal').classList.remove('hidden');
 }
 
 function closeAddUserModal() {
   document.getElementById('addUserModal').classList.add('hidden');
+  document.getElementById('addUserForm').reset();
 }
 
+function openEditUserModal(userId) {
+  currentEditUserId = userId;
+  
+  // Fetch user data
+  fetch(`/eggmin/api/users/${userId}`)
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        const user = data.user;
+        
+        // Fill form with user data
+        document.getElementById('editUserName').value = user.name;
+        document.getElementById('editUserEmail').value = user.email;
+        document.getElementById('editUserRole').value = user.role;
+        
+        // Show modal
+        document.getElementById('editUserModal').classList.remove('hidden');
+      } else {
+        alert('Error: ' + data.error);
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      alert('Terjadi kesalahan saat mengambil data user');
+    });
+}
+
+function closeEditUserModal() {
+  document.getElementById('editUserModal').classList.add('hidden');
+  document.getElementById('editUserForm').reset();
+  currentEditUserId = null;
+}
+
+// Handle form submission for creating user
+document.getElementById('addUserForm').addEventListener('submit', function(e) {
+  e.preventDefault();
+  
+  const formData = new FormData(this);
+  
+  fetch('/eggmin/api/users/create', {
+    method: 'POST',
+    body: formData
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      alert('User berhasil dibuat!');
+      closeAddUserModal();
+      location.reload();
+    } else {
+      alert('Error: ' + data.error);
+    }
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    alert('Terjadi kesalahan saat membuat user');
+  });
+});
+
+// Handle form submission for editing user
+document.getElementById('editUserForm').addEventListener('submit', function(e) {
+  e.preventDefault();
+  
+  if (!currentEditUserId) return;
+  
+  const formData = new FormData(this);
+  
+  fetch(`/eggmin/api/users/update/${currentEditUserId}`, {
+    method: 'POST',
+    body: formData
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      alert('User berhasil diperbarui!');
+      closeEditUserModal();
+      location.reload();
+    } else {
+      alert('Error: ' + data.error);
+    }
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    alert('Terjadi kesalahan saat memperbarui user');
+  });
+});
+
 function editUser(userId) {
-  alert('Edit user: ' + userId);
-  // Implement edit functionality
+  openEditUserModal(userId);
 }
 
 function deleteUser(userId) {
-  if (confirm('Apakah Anda yakin ingin menghapus user ini?')) {
-    alert('Delete user: ' + userId);
-    // Implement delete functionality
-  }
+  if (!confirm('Apakah Anda yakin ingin menghapus user ini? Tindakan ini tidak dapat dibatalkan.')) return;
+  
+  fetch(`/eggmin/api/users/delete/${userId}`, {
+    method: 'POST'
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      alert('User berhasil dihapus!');
+      location.reload();
+    } else {
+      alert('Error: ' + data.error);
+    }
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    alert('Terjadi kesalahan saat menghapus user');
+  });
 }
 
-// Close modal when clicking outside
+// Search and filter functionality
+document.addEventListener('DOMContentLoaded', function() {
+  const searchInput = document.querySelector('input[placeholder="Cari user..."]');
+  const roleFilter = document.querySelector('select');
+  
+  function filterUsers() {
+    const searchTerm = searchInput.value.toLowerCase();
+    const roleValue = roleFilter.value;
+    
+    const rows = document.querySelectorAll('tbody tr');
+    
+    rows.forEach(row => {
+      const userName = row.querySelector('.font-medium').textContent.toLowerCase();
+      const userEmail = row.querySelector('td:nth-child(2)').textContent.toLowerCase();
+      const userRole = row.querySelector('td:nth-child(3) .badge').textContent.toLowerCase();
+      
+      const matchesSearch = userName.includes(searchTerm) || userEmail.includes(searchTerm);
+      const matchesRole = !roleValue || userRole.includes(roleValue);
+      
+      if (matchesSearch && matchesRole) {
+        row.style.display = '';
+      } else {
+        row.style.display = 'none';
+      }
+    });
+  }
+  
+  searchInput.addEventListener('input', filterUsers);
+  roleFilter.addEventListener('change', filterUsers);
+});
+
+// Close modals when clicking outside
 document.getElementById('addUserModal').addEventListener('click', function(e) {
   if (e.target === this) {
     closeAddUserModal();
+  }
+});
+
+document.getElementById('editUserModal').addEventListener('click', function(e) {
+  if (e.target === this) {
+    closeEditUserModal();
   }
 });
 </script>

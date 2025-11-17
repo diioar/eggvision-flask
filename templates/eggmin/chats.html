@@ -203,24 +203,115 @@ function sendReply(chatId) {
   const input = document.querySelector(`#replyForm-${chatId} input`);
   const message = input.value.trim();
   
-  if (message) {
-    alert('Mengirim balasan untuk chat ' + chatId + ': ' + message);
-    // Implement send reply functionality
-    input.value = '';
-    document.getElementById(`replyForm-${chatId}`).classList.add('hidden');
+  if (!message) {
+    alert('Pesan balasan tidak boleh kosong');
+    return;
   }
+  
+  const formData = new FormData();
+  formData.append('message', message);
+  
+  fetch(`/eggmin/api/chats/reply/${chatId}`, {
+    method: 'POST',
+    body: formData
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      alert('Balasan berhasil dikirim!');
+      input.value = '';
+      document.getElementById(`replyForm-${chatId}`).classList.add('hidden');
+      location.reload();
+    } else {
+      alert('Error: ' + data.error);
+    }
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    alert('Terjadi kesalahan saat mengirim balasan');
+  });
 }
 
 function markAsRead(chatId) {
-  alert('Menandai chat ' + chatId + ' sebagai sudah dibaca');
-  // Implement mark as read functionality
+  fetch(`/eggmin/api/chats/mark-read/${chatId}`, {
+    method: 'POST'
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      alert('Pesan ditandai sebagai sudah dibaca!');
+      location.reload();
+    } else {
+      alert('Error: ' + data.error);
+    }
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    alert('Terjadi kesalahan saat menandai pesan');
+  });
 }
 
 function deleteChat(chatId) {
-  if (confirm('Apakah Anda yakin ingin menghapus chat ini?')) {
-    alert('Menghapus chat: ' + chatId);
-    // Implement delete functionality
-  }
+  if (!confirm('Apakah Anda yakin ingin menghapus chat ini? Tindakan ini tidak dapat dibatalkan.')) return;
+  
+  fetch(`/eggmin/api/chats/delete/${chatId}`, {
+    method: 'POST'
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      alert('Chat berhasil dihapus!');
+      location.reload();
+    } else {
+      alert('Error: ' + data.error);
+    }
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    alert('Terjadi kesalahan saat menghapus chat');
+  });
 }
+
+// Search and filter functionality for chats
+document.addEventListener('DOMContentLoaded', function() {
+  const searchInput = document.querySelector('input[placeholder="Cari pesan..."]');
+  const statusFilter = document.querySelector('select:first-of-type');
+  const senderFilter = document.querySelector('select:last-of-type');
+  
+  function filterChats() {
+    const searchTerm = searchInput.value.toLowerCase();
+    const statusValue = statusFilter.value;
+    const senderValue = senderFilter.value;
+    
+    const chatItems = document.querySelectorAll('.divide-y > div');
+    
+    chatItems.forEach(item => {
+      const senderName = item.querySelector('.font-semibold').textContent.toLowerCase();
+      const messageContent = item.querySelector('p.text-sm').textContent.toLowerCase();
+      const statusBadge = item.querySelector('.badge.bg-red-500')?.textContent || '';
+      const senderRole = item.querySelector('.badge:not(.bg-red-500)').textContent.toLowerCase();
+      
+      const matchesSearch = senderName.includes(searchTerm) || messageContent.includes(searchTerm);
+      const matchesStatus = !statusValue || 
+        (statusValue === 'unread' && statusBadge === 'baru') ||
+        (statusValue === 'read' && !statusBadge) ||
+        (statusValue === 'replied' && item.querySelector('.text-green-500')?.textContent.includes('dibalas'));
+      const matchesSender = !senderValue || 
+        (senderValue === 'guest' && senderRole.includes('guest')) ||
+        (senderValue === 'pembeli' && senderRole.includes('pembeli')) ||
+        (senderValue === 'pengusaha' && senderRole.includes('pengusaha'));
+      
+      if (matchesSearch && matchesStatus && matchesSender) {
+        item.style.display = '';
+      } else {
+        item.style.display = 'none';
+      }
+    });
+  }
+  
+  searchInput.addEventListener('input', filterChats);
+  statusFilter.addEventListener('change', filterChats);
+  senderFilter.addEventListener('change', filterChats);
+});
 </script>
 {% endblock %}
