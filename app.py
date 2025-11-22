@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from flask_sqlalchemy import SQLAlchemy
+from flask_mail import Mail, Message
 import mysql.connector
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
@@ -14,6 +15,16 @@ load_dotenv()
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev-secret-key')
+
+# --- Mail Configuration ---
+app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+app.config['MAIL_PORT'] = 587
+app.config['MAIL_USE_TLS'] = True
+app.config['MAIL_USERNAME'] = os.getenv('MAIL_USERNAME')
+app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD')
+app.config['MAIL_DEFAULT_SENDER'] = os.getenv('MAIL_USERNAME')
+
+mail = Mail(app)
 
 # Configure Upload Folder
 UPLOAD_FOLDER = 'static/uploads/products'
@@ -655,6 +666,63 @@ def comprof_tentang_kami():
 def comprof_kontak():
     """Contact page - accessible by everyone"""
     return render_template('comprof/kontak.html')
+
+@app.route('/api/contact/submit', methods=['POST'])
+def submit_contact_form():
+    try:
+        # 1. Get data
+        data = request.get_json()
+        name = data.get('name')
+        email = data.get('email')
+        subject = data.get('subject')
+        message_body = data.get('message')
+
+        if not all([name, email, message_body]):
+            return jsonify({'success': False, 'error': 'Mohon lengkapi semua data'}), 400
+
+        # 2. Save to Database (So it appears in EggMin Dashboard Chats)
+        conn = get_db_connection()
+        if conn:
+            try:
+                cur = conn.cursor()
+                # Save as guest_to_admin message
+                cur.execute('''
+                    INSERT INTO chat_messages 
+                    (guest_name, guest_email, message, message_type, status) 
+                    VALUES (%s, %s, %s, 'guest_to_admin', 'unread')
+                ''', (name, email, f"[{subject}] {message_body}"))
+                conn.commit()
+                cur.close()
+            except Exception as e:
+                print(f"DB Error saving contact: {e}")
+            finally:
+                conn.close()
+
+        # 3. Send Email to eggvision@gmail.com
+        msg = Message(
+            subject=f"New Contact: {subject}",
+            recipients=[os.getenv('MAIL_USERNAME')], # Send to yourself
+            body=f"""
+            Pesan Baru dari Website EggVision:
+            
+            Nama: {name}
+            Email: {email}
+            Subjek: {subject}
+            
+            Pesan:
+            {message_body}
+            """
+        )
+        # Reply to the user's email, not yourself
+        msg.reply_to = email 
+        
+        mail.send(msg)
+
+        return jsonify({'success': True, 'message': 'Pesan berhasil dikirim!'})
+
+    except Exception as e:
+        print(f"Email Error: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/api/chat/send', methods=['POST'])
 def comprof_send_chat():
